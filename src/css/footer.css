@@ -1,0 +1,69 @@
+.footer-container {
+    margin-top: 50px;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    color: #888;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+.footer-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+    background-size: 200% 100%;
+    animation: gradientMove 3s ease infinite;
+}
+
+@keyframes gradientMove {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.footer-container p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #6c757d;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.footer-container p:hover {
+    color: #667eea;
+    transform: scale(1.02);
+}
+
+@media (max-width: 768px) {
+    .footer-container {
+        padding: 15px;
+        margin-top: 30px;
+    }
+
+    .footer-container p {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-container {
+        padding: 12px;
+        margin-top: 20px;
+    }
+
+    .footer-container p {
+        font-size: 0.8rem;
+    }
+}

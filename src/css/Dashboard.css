@@ -1,0 +1,230 @@
+
+.dashboard-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    direction: rtl;
+}
+
+.dashboard-container > div:first-child {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    margin-bottom: 30px !important;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.dashboard-container h1 {
+    margin: 0 !important;
+    color: #1f2937;
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+.dashboard-container button[style*="6c757d"] {
+    padding: 10px 20px !important;
+    background-color: #374151 !important;
+    color: white !important;
+    border: 1px solid #4b5563 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.dashboard-container button[style*="6c757d"]:hover {
+    background-color: #4b5563 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.dashboard-container button[style*="6c757d"]:active {
+    transform: translateY(0);
+}
+
+.stats-grid {
+    display: flex !important;
+    gap: 20px !important;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    flex: 1 !important;
+    min-width: 250px;
+    padding: 30px !important;
+    border-radius: 8px !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #1f2937;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+    transform: translateY(-4px);
+    border-color: #d1d5db;
+}
+
+.stat-card:hover::before {
+    transform: scaleX(1);
+}
+
+.stat-card:active {
+    transform: translateY(-2px);
+}
+
+.stat-card h3 {
+    color: #374151;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    letter-spacing: -0.015em;
+}
+
+.stat-card p {
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+    margin: 15px 0 !important;
+    color: #1f2937;
+    line-height: 1;
+}
+
+.stat-card p[style*="color: red"] {
+    color: #dc2626 !important;
+}
+
+.stat-card p[style*="color: #007bff"] {
+    color: #1f2937 !important;
+}
+
+.stat-card span {
+    font-size: 0.85rem !important;
+    color: #6b7280 !important;
+    display: block;
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 15px;
+    }
+
+    .dashboard-container h1 {
+        font-size: 1.6rem;
+    }
+
+    .dashboard-container > div:first-child {
+        flex-direction: column !important;
+        gap: 15px;
+        align-items: stretch !important;
+        margin-bottom: 25px !important;
+    }
+
+    .dashboard-container button[style*="6c757d"] {
+        width: 100%;
+    }
+
+    .stats-grid {
+        flex-direction: column;
+        gap: 15px !important;
+    }
+
+    .stat-card {
+        min-width: 100%;
+        padding: 25px !important;
+    }
+
+    .stat-card p {
+        font-size: 2.2rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 12px;
+    }
+
+    .dashboard-container h1 {
+        font-size: 1.4rem;
+    }
+
+    .stat-card {
+        padding: 20px !important;
+    }
+
+    .stat-card h3 {
+        font-size: 1rem;
+    }
+
+    .stat-card p {
+        font-size: 2rem !important;
+        margin: 12px 0 !important;
+    }
+
+    .stat-card span {
+        font-size: 0.8rem !important;
+    }
+}
+
+.dashboard-container {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card {
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stat-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.stat-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.stat-card:nth-child(3) {
+    animation-delay: 0.3s;
+}

@@ -1,0 +1,51 @@
+:root {
+  --primary-color: #007bff;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --bg-color: #f4f7f6;
+  --card-bg: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  direction: rtl; 
+  color: #333;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  font-weight: 600;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box; 
+  font-size: 16px;
+}
+
+.card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
