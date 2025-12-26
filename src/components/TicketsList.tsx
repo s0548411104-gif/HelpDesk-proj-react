@@ -4,6 +4,7 @@ import { AuthContext } from '../context/AuthContext';
 import { getTickets, createTicket, changeTicketStatus } from '../services/api.service';
 import '../css/TicketsList.css';
 
+// עדכון ה-Interface כך שיכלול את שדות התאריך והיוצר
 interface Ticket {
     id: number;
     subject: string;
@@ -14,6 +15,8 @@ interface Ticket {
     created_by: number;
     assigned_to: number | null;
     status_name: string;
+    created_at: string;      // שדה חובה לפי הדרישות
+    creator_name?: string;   // שדה אופציונלי (אם השרת מחזיר אותו)
 }
 
 const TicketsList: React.FC = () => {
@@ -101,14 +104,12 @@ const TicketsList: React.FC = () => {
             );
         }
 
-        // סינון לפי דחיפות
         if (filterPriority !== "all") {
             filtered = filtered.filter(t =>
                 t.priority_name?.toLowerCase().trim() === filterPriority.toLowerCase().trim()
             );
         }
 
-        // חיפוש חופשי
         if (searchTerm) {
             filtered = filtered.filter(t =>
                 t.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -116,7 +117,6 @@ const TicketsList: React.FC = () => {
             );
         }
 
-        // מיון
         return [...filtered].sort((a, b) => {
             if (sortBy === "newest") return b.id - a.id;
             if (sortBy === "oldest") return a.id - b.id;
@@ -210,10 +210,17 @@ const TicketsList: React.FC = () => {
                             <div className="card-header">
                                 <span className="ticket-id">#{ticket.id}</span>
                                 <span className={`priority-badge p-${ticket.priority_id}`}>
-                                    {ticket.priority_id === 3 ? "דחוף 🔥" : ticket.priority_id === 2 ? "בינוני ⚡" : "רגיל"}
+                                    {ticket.priority_id === 3 ? "דחוף 🔥" : ticket.priority_id === 2 ? "בינוני ⚡" : "רגיל ✅"}
                                 </span>
                             </div>
                             <h3>{ticket.subject} 📌</h3>
+                            
+                            {/* תצוגת פרטי יוצר ותאריך קריא - חובה לפי ההוראות */}
+                            <div className="ticket-meta-info" style={{ fontSize: '0.85rem', color: '#666', margin: '8px 0' }}>
+                                <div>👤 <strong>יוצר:</strong> {ticket.creator_name || `לקוח (${ticket.created_by})`}</div>
+                                <div>📅 <strong>תאריך:</strong> {new Date(ticket.created_at).toLocaleDateString('he-IL')}</div>
+                            </div>
+
                             <div className="ticket-footer">
                                 {(user?.role === 'agent' || user?.role === 'admin') ? (
                                     <div className="status-update-container" onClick={(e) => e.stopPropagation()}>

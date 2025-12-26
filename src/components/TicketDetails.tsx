@@ -13,7 +13,6 @@ const TicketDetails: React.FC = () => {
     const navigate = useNavigate();
     const [ticket, setTicket] = useState<any>(null);
     
-    // משתנה מצב להודעות מחיקה
     const [deleteStatus, setDeleteStatus] = useState<{ text: string; isError: boolean } | null>(null);
     
     const auth = useContext(AuthContext);
@@ -56,7 +55,6 @@ const TicketDetails: React.FC = () => {
                 
                 setDeleteStatus({ text: "הפנייה נמחקה בהצלחה! מעביר לרשימה...", isError: false });
                 
-                // המתנה קצרה כדי שהמשתמש יראה את הודעת ההצלחה לפני הניווט
                 setTimeout(() => navigate("/tickets"), 1500); 
                 
             } catch (error: any) {

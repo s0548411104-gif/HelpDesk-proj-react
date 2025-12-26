@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { changeTicketStatus } from '../services/api.service';
 import { AuthContext } from '../context/AuthContext';
-// import '../css/ChangeStatus.css';
 
 interface Props { 
     ticketId: string; 

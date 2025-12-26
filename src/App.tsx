@@ -6,7 +6,6 @@ import Header from "./components/Header";
 import TicketsList from "./components/TicketsList";
 import GuardRouter from "./guards/GuardRouter";
 import TicketDetails from './components/TicketDetails';
-import Register from './components/Register';
 import AddUser from './components/addUser';
 import Dashboard from './components/Dashboard';
 import Footer from './components/Footer';
@@ -16,7 +15,6 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
       <Route
         path="/*"
         element={
@@ -26,7 +24,6 @@ function App() {
               <Routes>
                 <Route path="/tickets" element={<TicketsList />} />
                 <Route path="/ticket/:id" element={<TicketDetails />} />
-                <Route path="/register" element={<Register />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/add-user" element={<AddUser />} />
                 <Route path="/users" element={<UsersList />} />

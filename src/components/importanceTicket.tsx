@@ -50,7 +50,7 @@ const ImportanceTicket: React.FC<Props> = ({ ticketId, onUpdate }) => {
                 <option value="" disabled>שנה רמת דחיפות...</option>
                 {priorities.map(p => (
                     <option key={p.id} value={p.id}>
-                        {p.name === 'High' ? 'דחוף 🔥' : p.name === 'Medium' ? 'בינוני ⚡' : 'רגיל ✅'}
+                        {p.name === 'high' ? 'דחוף 🔥' : p.name === 'medium' ? 'בינוני ⚡' : 'רגיל ✅'}
                     </option>
                 ))}
             </select>
