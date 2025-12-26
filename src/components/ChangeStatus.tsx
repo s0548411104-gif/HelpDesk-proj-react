@@ -37,8 +37,7 @@ const ChangeStatus: React.FC<Props> = ({ ticketId, onUpdate }) => {
             >
                 <option value="" disabled>שנה סטטוס פנייה...</option>
                 <option value="1">חדש 🆕</option>
-                <option value="2">בטיפול 🛠️</option>
-                <option value="3">סגור ✅</option>
+                <option value="2">סגור ✅</option>
             </select>
         </div>
     );

@@ -30,23 +30,28 @@ const Login: React.FC = () => {
         setServerMessage(null);
         setIsLoading(true);
 
+        const normalizedEmail = data.email.toLowerCase().trim();
+
         try {
             if (!isLoginMode) {
                 await registerUser({ 
                     name: data.name || '', 
-                    email: data.email, 
+                    email: normalizedEmail, 
                     password: data.password 
                 });
             }
 
             const response = await getToken({ 
-                email: data.email, 
+                email: normalizedEmail, 
                 password: data.password 
             });
 
             if (auth && response.token && response.user) {
                 auth.login(response.user, response.token);
-                setServerMessage({ text: isLoginMode ? "התחברת בהצלחה!" : "נרשמת והתחברת בהצלחה! 🥳", isError: false });
+                setServerMessage({ 
+                    text: isLoginMode ? "התחברת בהצלחה!" : "נרשמת והתחברת בהצלחה! 🥳", 
+                    isError: false 
+                });
                 
                 setTimeout(() => navigate("/tickets"), 1200);
             }

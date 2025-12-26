@@ -12,10 +12,10 @@ const TicketDetails: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [ticket, setTicket] = useState<any>(null);
-    
     const [deleteStatus, setDeleteStatus] = useState<{ text: string; isError: boolean } | null>(null);
     
     const auth = useContext(AuthContext);
+    const user = auth?.user; 
     const token = auth?.token || localStorage.getItem('token');
 
     const loadTicket = async () => {
@@ -35,12 +35,10 @@ const TicketDetails: React.FC = () => {
 
     const handleDelete = async () => {
         const confirmDelete = window.confirm("אזהרה: מחיקת הפנייה תמחוק לצמיתות גם את כל התגובות הקשורות אליה. להמשיך?");
-        
         if (confirmDelete && id && token) {
             setDeleteStatus({ text: "מוחק נתונים... ⏳", isError: false });
             try {
                 const comments = await getComments(id, token);
-                
                 if (comments && comments.length > 0) {
                     for (const comment of comments) {
                         try {
@@ -50,20 +48,12 @@ const TicketDetails: React.FC = () => {
                         }
                     }
                 }
-
                 await deleteTicket(id, token);
-                
                 setDeleteStatus({ text: "הפנייה נמחקה בהצלחה! מעביר לרשימה...", isError: false });
-                
                 setTimeout(() => navigate("/tickets"), 1500); 
-                
             } catch (error: any) {
                 console.error("שגיאה בתהליך המחיקה:", error);
-                if (error.response?.status === 500) {
-                    setDeleteStatus({ text: "שגיאת שרת (500): ישנם נתונים מקושרים שמונעים מחיקה.", isError: true });
-                } else {
-                    setDeleteStatus({ text: "המחיקה נכשלה. בדקי את הקונסול לפרטים.", isError: true });
-                }
+                setDeleteStatus({ text: "המחיקה נכשלה.", isError: true });
             }
         }
     };
@@ -87,37 +77,42 @@ const TicketDetails: React.FC = () => {
                 </div>
             </div>
 
-            {auth?.user?.role === 'admin' && (
-                <>
-                    <div className="admin-tools">
-                        <h4>פעולות מנהל 🛠️</h4>
-                        <div className="tool">
-                            <p>שינוי סטטוס</p>
-                            <ChangeStatus ticketId={id!} onUpdate={loadTicket} />
-                        </div>
-                        
-                        <div className="tool">
-                            <p>שיוך לסוכן</p>
-                            <TicketToAgent ticketId={id!} onUpdate={loadTicket} />
-                        </div>
-
-                        <div className="tool">
-                            <p>שינוי דחיפות</p>
-                            <ImportanceTicket ticketId={id!} onUpdate={loadTicket} />
-                        </div>
+            {(user?.role === 'admin' || user?.role === 'agent') && (
+                <div className="admin-tools">
+                    <h4>ניהול פנייה ⚙️</h4>
+                    
+                    <div className="tool">
+                        <p>שינוי סטטוס</p>
+                        <ChangeStatus ticketId={id!} onUpdate={loadTicket} />
                     </div>
 
-                    <div className="danger-zone">
-                        {deleteStatus && (
-                            <div>
-                                {deleteStatus.text}
+                    {user?.role === 'admin' && (
+                        <>
+                            <div className="tool">
+                                <p>שיוך לסוכן</p>
+                                <TicketToAgent ticketId={id!} onUpdate={loadTicket} />
                             </div>
-                        )}
-                        <button className="delete-button-red" onClick={handleDelete}>
-                            🗑️ מחיקת פנייה לצמיתות
-                        </button>
-                    </div>
-                </>
+
+                            <div className="tool">
+                                <p>שינוי דחיפות</p>
+                                <ImportanceTicket ticketId={id!} onUpdate={loadTicket} />
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {user?.role === 'admin' && (
+                <div className="danger-zone">
+                    {deleteStatus && (
+                        <div className={deleteStatus.isError ? "error" : "success"}>
+                            {deleteStatus.text}
+                        </div>
+                    )}
+                    <button className="delete-button-red" onClick={handleDelete}>
+                        🗑️ מחיקת פנייה לצמיתות
+                    </button>
+                </div>
             )}
 
             <hr />

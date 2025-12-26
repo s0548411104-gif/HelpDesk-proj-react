@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useContext, useCallback, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { getTickets, createTicket, changeTicketStatus } from '../services/api.service';
+import { getTickets } from '../services/api.service';
 import '../css/TicketsList.css';
 
-// עדכון ה-Interface כך שיכלול את שדות התאריך והיוצר
 interface Ticket {
     id: number;
     subject: string;
@@ -15,133 +14,56 @@ interface Ticket {
     created_by: number;
     assigned_to: number | null;
     status_name: string;
-    created_at: string;      // שדה חובה לפי הדרישות
-    creator_name?: string;   // שדה אופציונלי (אם השרת מחזיר אותו)
+    created_at: string;
+    creator_name?: string;
 }
 
 const TicketsList: React.FC = () => {
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-
-    const [filterStatus, setFilterStatus] = useState<string>("all");
-    const [filterPriority, setFilterPriority] = useState<string>("all");
-    const [sortBy, setSortBy] = useState<string>("newest");
-    const [searchTerm, setSearchTerm] = useState<string>("");
-
-    const [subject, setSubject] = useState<string>("");
-    const [description, setDescription] = useState<string>("");
-    const [priorityId, setPriorityId] = useState<number>(1);
-    const [formStatus, setFormStatus] = useState<{ message: string; type: 'success' | 'error' | null }>({ message: '', type: null });
+    
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'closed'>('all');
 
     const navigate = useNavigate();
+    const location = useLocation();
     const auth = useContext(AuthContext);
     const user = auth?.user;
     const token = localStorage.getItem('token') || auth?.token;
 
-    const fetchTickets = async () => {
-        try {
-            if (!token) {
-                setLoading(false);
-                return;
-            }
-            const data = await getTickets(token);
-            setTickets(data);
+    const fetchTickets = useCallback(async () => {
+        if (!token) {
             setLoading(false);
-        } catch (error) {
-            console.error("שגיאה בטעינת הפניות:", error);
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchTickets();
-    }, [token]);
-
-    const handleQuickStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>, ticketId: number) => {
-        e.stopPropagation(); 
-        const newStatusId = Number(e.target.value);
-
-        const statusNames: { [key: number]: string } = {
-            1: 'open',
-            2: 'in_progress',
-            3: 'closed',
-            4: 'deleted' 
-        };
-
-        try {
-            if (token) {
-                await changeTicketStatus(ticketId.toString(), newStatusId, token);
-
-                setTickets(prev => prev.map(t =>
-                    t.id === ticketId ? { 
-                        ...t, 
-                        status_id: newStatusId, 
-                        status_name: statusNames[newStatusId] 
-                    } : t
-                ));
-                
-                setFormStatus({ message: "הסטטוס עודכן! ✅", type: 'success' });
-                setTimeout(() => setFormStatus({ message: '', type: null }), 2000);
-            }
-        } catch (error) {
-            setFormStatus({ message: "עדכון נכשל ❌", type: 'error' });
-        }
-    };
-
-    const processedTickets = useMemo(() => {
-        let filtered = tickets.filter(ticket => {
-            if (ticket.status_id === 4) return false;
-
-            if (user?.role === 'admin') return true;
-            if (user?.role === 'agent') return ticket.assigned_to === user.id;
-            if (user?.role === 'customer') return ticket.created_by === user.id;
-            return false;
-        });
-
-        if (filterStatus !== "all") {
-            filtered = filtered.filter(t =>
-                t.status_name?.toLowerCase().trim() === filterStatus.toLowerCase().trim()
-            );
-        }
-
-        if (filterPriority !== "all") {
-            filtered = filtered.filter(t =>
-                t.priority_name?.toLowerCase().trim() === filterPriority.toLowerCase().trim()
-            );
-        }
-
-        if (searchTerm) {
-            filtered = filtered.filter(t =>
-                t.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                t.description.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-
-        return [...filtered].sort((a, b) => {
-            if (sortBy === "newest") return b.id - a.id;
-            if (sortBy === "oldest") return a.id - b.id;
-            if (sortBy === "priority") return b.priority_id - a.priority_id;
-            return 0;
-        });
-    }, [tickets, user, filterStatus, filterPriority, sortBy, searchTerm]);
-
-    const handleAddTicket = async () => {
-        if (!subject || !description) {
-            setFormStatus({ message: "נא למלא נושא ותיאור ⚠️", type: 'error' });
             return;
         }
         try {
-            if (token) {
-                await createTicket(subject, description, priorityId, token);
-                setFormStatus({ message: "הפנייה נוספה בהצלחה! ✅", type: 'success' });
-                await fetchTickets();
-                setSubject(""); setDescription(""); setPriorityId(1);
-                setTimeout(() => setFormStatus({ message: '', type: null }), 3000);
-            }
+            const data = await getTickets(token);
+            setTickets(data);
         } catch (error) {
-            setFormStatus({ message: "הפעולה נכשלה ❌", type: 'error' });
+            console.error("שגיאה בטעינת הרשימה:", error);
+        } finally {
+            setLoading(false);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        fetchTickets();
+    }, [fetchTickets, location.key]);
+
+    const filteredTickets = useMemo(() => {
+        return tickets
+            .filter(ticket => {
+                const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                const isClosed = Number(ticket.status_id) === 2;
+                const matchesStatus = 
+                    statusFilter === 'all' ? true :
+                    statusFilter === 'closed' ? isClosed : !isClosed;
+
+                return matchesSearch && matchesStatus;
+            })
+            .sort((a, b) => b.id - a.id);
+    }, [tickets, searchTerm, statusFilter]);
 
     if (loading) return <div className="tickets-container"><p>טוען נתונים... ⏳</p></div>;
 
@@ -149,102 +71,74 @@ const TicketsList: React.FC = () => {
         <div className="tickets-container">
             <h2 className="main-title">ניהול פניות שירות 🎫</h2>
 
-            {user?.role === 'customer' && (
-                <div className="form-section card">
-                    <h3>הוספת פנייה חדשה 📝</h3>
-                    {formStatus.type && <div className={`status-message ${formStatus.type}`}>{formStatus.message}</div>}
-                    <div className="input-group">
-                        <input className="form-input" placeholder="נושא הפנייה" value={subject} onChange={(e) => setSubject(e.target.value)} />
-                        <textarea className="form-input" placeholder="תיאור הבעיה..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
-                        <div className="form-row">
-                            <select className="form-input" value={priorityId} onChange={(e) => setPriorityId(Number(e.target.value))}>
-                                <option value={1}>רגיל</option>
-                                <option value={2}>בינוני</option>
-                                <option value={3}>דחוף 🔥</option>
-                            </select>
-                            <button className="submit-button" onClick={handleAddTicket}>שלח פנייה 🚀</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="filter-sort-bar card">
+            <div className="filter-controls">
                 <div className="search-box">
-                    <input type="text" placeholder="חיפוש חופשי..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                    <input 
+                        type="text" 
+                        placeholder="חיפוש לפי נושא פנייה..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
-
-                <div className="select-group">
-                    <label>סטטוס:</label>
-                    <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                        <option value="all">הכל</option>
-                        <option value="open">פתוח</option>
-                        <option value="in_progress">בטיפול</option>
-                        <option value="closed">סגור</option>
+                
+                <div className="filter-box">
+                    <select 
+                        value={statusFilter} 
+                        onChange={(e) => setStatusFilter(e.target.value as any)}
+                    >
+                        <option value="all">כל המצבים</option>
+                        <option value="open">פתוח בלבד 📨</option>
+                        <option value="closed">סגור בלבד ✅</option>
                     </select>
                 </div>
 
-                <div className="select-group">
-                    <label>דחיפות:</label>
-                    <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}>
-                        <option value="all">כל הרמות</option>
-                        <option value="low">רגיל</option>
-                        <option value="medium">בינוני ⚡</option>
-                        <option value="high">דחוף 🔥</option>
-                    </select>
-                </div>
-
-                <div className="select-group">
-                    <label>מיין:</label>
-                    <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-                        <option value="newest">חדש ביותר</option>
-                        <option value="oldest">ישן ביותר</option>
-                        <option value="priority">לפי דחיפות</option>
-                    </select>
+                <div className="results-count">
+                    נמצאו <strong>{filteredTickets.length}</strong> פניות
                 </div>
             </div>
 
             <div className="tickets-grid">
-                {processedTickets.length > 0 ? (
-                    processedTickets.map((ticket) => (
-                        <div key={ticket.id} className={`ticket-card priority-${ticket.priority_id}`} onClick={() => navigate(`/ticket/${ticket.id}`)}>
-                            <div className="card-header">
-                                <span className="ticket-id">#{ticket.id}</span>
-                                <span className={`priority-badge p-${ticket.priority_id}`}>
-                                    {ticket.priority_id === 3 ? "דחוף 🔥" : ticket.priority_id === 2 ? "בינוני ⚡" : "רגיל ✅"}
-                                </span>
-                            </div>
-                            <h3>{ticket.subject} 📌</h3>
-                            
-                            {/* תצוגת פרטי יוצר ותאריך קריא - חובה לפי ההוראות */}
-                            <div className="ticket-meta-info" style={{ fontSize: '0.85rem', color: '#666', margin: '8px 0' }}>
-                                <div>👤 <strong>יוצר:</strong> {ticket.creator_name || `לקוח (${ticket.created_by})`}</div>
-                                <div>📅 <strong>תאריך:</strong> {new Date(ticket.created_at).toLocaleDateString('he-IL')}</div>
-                            </div>
-
-                            <div className="ticket-footer">
-                                {(user?.role === 'agent' || user?.role === 'admin') ? (
-                                    <div className="status-update-container" onClick={(e) => e.stopPropagation()}>
-                                        <label>סטטוס:</label>
-                                        <select
-                                            className="quick-status-select"
-                                            value={ticket.status_id}
-                                            onChange={(e) => handleQuickStatusChange(e, ticket.id)}
-                                        >
-                                            <option value={1}>Open</option>
-                                            <option value={2}>In Progress</option>
-                                            <option value={3}>Closed</option>
-                                        </select>
+                {filteredTickets.length > 0 ? (
+                    filteredTickets.map((ticket) => {
+                        const isClosed = Number(ticket.status_id) === 2;
+                        return (
+                            <div 
+                                key={ticket.id} 
+                                className={`ticket-card ${isClosed ? 'status-is-closed' : 'status-is-open'}`} 
+                                onClick={() => navigate(`/ticket/${ticket.id}`)}
+                            >
+                                <div className="card-header">
+                                    <span className="ticket-id">#{ticket.id}</span>
+                                    <div className="header-badges">
+                                        <span className={`status-badge-text ${isClosed ? 'badge-closed' : 'badge-open'}`}>
+                                            {isClosed ? "CLOSED ✅" : "OPEN 📨"}
+                                        </span>
+                                        <span className={`priority-badge p-${ticket.priority_id}`}>
+                                            {ticket.priority_name}
+                                        </span>
                                     </div>
-                                ) : (
-                                    <span className="status-badge">סטטוס: {ticket.status_name}</span>
-                                )}
+                                </div>
+
+                                <h3>{ticket.subject}</h3>
+                                
+                                <div className="ticket-meta-info">
+                                    <div>👤 יוצר: {ticket.creator_name || `משתמש (${ticket.created_by})`}</div>
+                                    <div>📅 תאריך: {new Date(ticket.created_at).toLocaleDateString('he-IL')}</div>
+                                </div>
+
+                                <div className="ticket-footer">
+                                    <span className={`status-tag ${isClosed ? 'tag-closed' : 'tag-open'}`}>
+                                        מצב: {isClosed ? 'סגור' : 'פתוח'}
+                                    </span>
+                                    {(user?.role === 'agent' || user?.role === 'admin') && (
+                                        <span className="manage-link">ניהול פנייה ⚙️</span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 ) : (
-                    <div className="no-results">
-                        <p>לא נמצאו פניות התואמות את הסינון שלך. 🔍</p>
-                    </div>
+                    <div className="no-results-msg">לא נמצאו פניות מתאימות לחיפוש שלך. 🔍</div>
                 )}
             </div>
         </div>
